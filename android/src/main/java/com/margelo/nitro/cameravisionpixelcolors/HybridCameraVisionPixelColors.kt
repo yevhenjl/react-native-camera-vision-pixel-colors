@@ -41,7 +41,9 @@ class HybridCameraVisionPixelColors: HybridCameraVisionPixelColorsSpec() {
             PixelColorsResult(
                 uniqueColorCount = uniqueColorCount.toDouble(),
                 topColors = topColors,
-                brightestColors = brightestColors
+                brightestColors = brightestColors,
+                motion = null,
+                roiApplied = null
             )
         }
     }

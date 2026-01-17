@@ -10,8 +10,11 @@
 #include <fbjni/fbjni.h>
 #include "PixelColorsResult.hpp"
 
+#include "JMotionResult.hpp"
 #include "JRGBColor.hpp"
+#include "MotionResult.hpp"
 #include "RGBColor.hpp"
+#include <optional>
 #include <vector>
 
 namespace margelo::nitro::cameravisionpixelcolors {
@@ -39,6 +42,10 @@ namespace margelo::nitro::cameravisionpixelcolors {
       jni::local_ref<jni::JArrayClass<JRGBColor>> topColors = this->getFieldValue(fieldTopColors);
       static const auto fieldBrightestColors = clazz->getField<jni::JArrayClass<JRGBColor>>("brightestColors");
       jni::local_ref<jni::JArrayClass<JRGBColor>> brightestColors = this->getFieldValue(fieldBrightestColors);
+      static const auto fieldMotion = clazz->getField<JMotionResult>("motion");
+      jni::local_ref<JMotionResult> motion = this->getFieldValue(fieldMotion);
+      static const auto fieldRoiApplied = clazz->getField<jni::JBoolean>("roiApplied");
+      jni::local_ref<jni::JBoolean> roiApplied = this->getFieldValue(fieldRoiApplied);
       return PixelColorsResult(
         uniqueColorCount,
         [&]() {
@@ -60,7 +67,9 @@ namespace margelo::nitro::cameravisionpixelcolors {
             __vector.push_back(__element->toCpp());
           }
           return __vector;
-        }()
+        }(),
+        motion != nullptr ? std::make_optional(motion->toCpp()) : std::nullopt,
+        roiApplied != nullptr ? std::make_optional(static_cast<bool>(roiApplied->value())) : std::nullopt
       );
     }
 
@@ -70,7 +79,7 @@ namespace margelo::nitro::cameravisionpixelcolors {
      */
     [[maybe_unused]]
     static jni::local_ref<JPixelColorsResult::javaobject> fromCpp(const PixelColorsResult& value) {
-      using JSignature = JPixelColorsResult(double, jni::alias_ref<jni::JArrayClass<JRGBColor>>, jni::alias_ref<jni::JArrayClass<JRGBColor>>);
+      using JSignature = JPixelColorsResult(double, jni::alias_ref<jni::JArrayClass<JRGBColor>>, jni::alias_ref<jni::JArrayClass<JRGBColor>>, jni::alias_ref<JMotionResult>, jni::alias_ref<jni::JBoolean>);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
@@ -95,7 +104,9 @@ namespace margelo::nitro::cameravisionpixelcolors {
             __array->setElement(__i, *__elementJni);
           }
           return __array;
-        }()
+        }(),
+        value.motion.has_value() ? JMotionResult::fromCpp(value.motion.value()) : nullptr,
+        value.roiApplied.has_value() ? jni::JBoolean::valueOf(value.roiApplied.value()) : nullptr
       );
     }
   };

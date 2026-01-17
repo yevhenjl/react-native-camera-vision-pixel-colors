@@ -11,6 +11,8 @@
 namespace margelo::nitro::cameravisionpixelcolors { struct PixelColorsResult; }
 // Forward declaration of `RGBColor` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct RGBColor; }
+// Forward declaration of `MotionResult` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct MotionResult; }
 // Forward declaration of `ImageData` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct ImageData; }
 
@@ -21,6 +23,9 @@ namespace margelo::nitro::cameravisionpixelcolors { struct ImageData; }
 #include "RGBColor.hpp"
 #include <vector>
 #include "JRGBColor.hpp"
+#include "MotionResult.hpp"
+#include <optional>
+#include "JMotionResult.hpp"
 #include "ImageData.hpp"
 #include "JImageData.hpp"
 #include <NitroModules/ArrayBuffer.hpp>

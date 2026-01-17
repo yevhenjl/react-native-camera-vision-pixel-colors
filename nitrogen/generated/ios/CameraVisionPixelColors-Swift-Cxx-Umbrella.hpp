@@ -12,6 +12,8 @@
 namespace margelo::nitro::cameravisionpixelcolors { class HybridCameraVisionPixelColorsSpec; }
 // Forward declaration of `ImageData` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct ImageData; }
+// Forward declaration of `MotionResult` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct MotionResult; }
 // Forward declaration of `PixelColorsResult` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct PixelColorsResult; }
 // Forward declaration of `RGBColor` to properly resolve imports.
@@ -20,6 +22,7 @@ namespace margelo::nitro::cameravisionpixelcolors { struct RGBColor; }
 // Include C++ defined types
 #include "HybridCameraVisionPixelColorsSpec.hpp"
 #include "ImageData.hpp"
+#include "MotionResult.hpp"
 #include "PixelColorsResult.hpp"
 #include "RGBColor.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
@@ -27,6 +30,7 @@ namespace margelo::nitro::cameravisionpixelcolors { struct RGBColor; }
 #include <NitroModules/Result.hpp>
 #include <exception>
 #include <memory>
+#include <optional>
 #include <vector>
 
 // C++ helpers for Swift

@@ -25,7 +25,13 @@ data class PixelColorsResult(
   val topColors: Array<RGBColor>,
   @DoNotStrip
   @Keep
-  val brightestColors: Array<RGBColor>
+  val brightestColors: Array<RGBColor>,
+  @DoNotStrip
+  @Keep
+  val motion: MotionResult?,
+  @DoNotStrip
+  @Keep
+  val roiApplied: Boolean?
 ) {
   /* primary constructor */
 
@@ -37,8 +43,8 @@ data class PixelColorsResult(
     @Keep
     @Suppress("unused")
     @JvmStatic
-    private fun fromCpp(uniqueColorCount: Double, topColors: Array<RGBColor>, brightestColors: Array<RGBColor>): PixelColorsResult {
-      return PixelColorsResult(uniqueColorCount, topColors, brightestColors)
+    private fun fromCpp(uniqueColorCount: Double, topColors: Array<RGBColor>, brightestColors: Array<RGBColor>, motion: MotionResult?, roiApplied: Boolean?): PixelColorsResult {
+      return PixelColorsResult(uniqueColorCount, topColors, brightestColors, motion, roiApplied)
     }
   }
 }

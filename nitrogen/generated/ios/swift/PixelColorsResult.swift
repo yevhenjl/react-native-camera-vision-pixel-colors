@@ -19,7 +19,7 @@ public extension PixelColorsResult {
   /**
    * Create a new instance of `PixelColorsResult`.
    */
-  init(uniqueColorCount: Double, topColors: [RGBColor], brightestColors: [RGBColor]) {
+  init(uniqueColorCount: Double, topColors: [RGBColor], brightestColors: [RGBColor], motion: MotionResult?, roiApplied: Bool?) {
     self.init(uniqueColorCount, { () -> bridge.std__vector_RGBColor_ in
       var __vector = bridge.create_std__vector_RGBColor_(topColors.count)
       for __item in topColors {
@@ -32,6 +32,18 @@ public extension PixelColorsResult {
         __vector.push_back(__item)
       }
       return __vector
+    }(), { () -> bridge.std__optional_MotionResult_ in
+      if let __unwrappedValue = motion {
+        return bridge.create_std__optional_MotionResult_(__unwrappedValue)
+      } else {
+        return .init()
+      }
+    }(), { () -> bridge.std__optional_bool_ in
+      if let __unwrappedValue = roiApplied {
+        return bridge.create_std__optional_bool_(__unwrappedValue)
+      } else {
+        return .init()
+      }
     }())
   }
 
@@ -48,5 +60,22 @@ public extension PixelColorsResult {
   @inline(__always)
   var brightestColors: [RGBColor] {
     return self.__brightestColors.map({ __item in __item })
+  }
+  
+  @inline(__always)
+  var motion: MotionResult? {
+    return self.__motion.value
+  }
+  
+  @inline(__always)
+  var roiApplied: Bool? {
+    return { () -> Bool? in
+      if bridge.has_value_std__optional_bool_(self.__roiApplied) {
+        let __unwrapped = bridge.get_std__optional_bool_(self.__roiApplied)
+        return __unwrapped
+      } else {
+        return nil
+      }
+    }()
   }
 }
