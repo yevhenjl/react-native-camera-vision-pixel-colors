@@ -16,6 +16,8 @@ namespace CameraVisionPixelColors { class HybridCameraVisionPixelColorsSpec_cxx;
 namespace margelo::nitro::cameravisionpixelcolors { struct PixelColorsResult; }
 // Forward declaration of `RGBColor` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct RGBColor; }
+// Forward declaration of `MotionResult` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct MotionResult; }
 // Forward declaration of `ImageData` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct ImageData; }
 // Forward declaration of `ArrayBufferHolder` to properly resolve imports.
@@ -25,6 +27,8 @@ namespace NitroModules { class ArrayBufferHolder; }
 #include <NitroModules/Promise.hpp>
 #include "RGBColor.hpp"
 #include <vector>
+#include "MotionResult.hpp"
+#include <optional>
 #include "ImageData.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/ArrayBufferHolder.hpp>

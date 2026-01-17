@@ -10,6 +10,8 @@
 // Forward declarations of C++ defined types
 // Forward declaration of `HybridCameraVisionPixelColorsSpec` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { class HybridCameraVisionPixelColorsSpec; }
+// Forward declaration of `MotionResult` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct MotionResult; }
 // Forward declaration of `PixelColorsResult` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct PixelColorsResult; }
 // Forward declaration of `RGBColor` to properly resolve imports.
@@ -21,6 +23,7 @@ namespace CameraVisionPixelColors { class HybridCameraVisionPixelColorsSpec_cxx;
 
 // Include C++ defined types
 #include "HybridCameraVisionPixelColorsSpec.hpp"
+#include "MotionResult.hpp"
 #include "PixelColorsResult.hpp"
 #include "RGBColor.hpp"
 #include <NitroModules/Promise.hpp>
@@ -29,6 +32,7 @@ namespace CameraVisionPixelColors { class HybridCameraVisionPixelColorsSpec_cxx;
 #include <exception>
 #include <functional>
 #include <memory>
+#include <optional>
 #include <vector>
 
 /**
@@ -46,6 +50,36 @@ namespace margelo::nitro::cameravisionpixelcolors::bridge::swift {
     std::vector<RGBColor> vector;
     vector.reserve(size);
     return vector;
+  }
+  
+  // pragma MARK: std::optional<MotionResult>
+  /**
+   * Specialized version of `std::optional<MotionResult>`.
+   */
+  using std__optional_MotionResult_ = std::optional<MotionResult>;
+  inline std::optional<MotionResult> create_std__optional_MotionResult_(const MotionResult& value) noexcept {
+    return std::optional<MotionResult>(value);
+  }
+  inline bool has_value_std__optional_MotionResult_(const std::optional<MotionResult>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline MotionResult get_std__optional_MotionResult_(const std::optional<MotionResult>& optional) noexcept {
+    return *optional;
+  }
+  
+  // pragma MARK: std::optional<bool>
+  /**
+   * Specialized version of `std::optional<bool>`.
+   */
+  using std__optional_bool_ = std::optional<bool>;
+  inline std::optional<bool> create_std__optional_bool_(const bool& value) noexcept {
+    return std::optional<bool>(value);
+  }
+  inline bool has_value_std__optional_bool_(const std::optional<bool>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline bool get_std__optional_bool_(const std::optional<bool>& optional) noexcept {
+    return *optional;
   }
   
   // pragma MARK: std::shared_ptr<Promise<PixelColorsResult>>

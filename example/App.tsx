@@ -7,6 +7,7 @@ import {
   Pressable,
   Platform,
   Linking,
+  Switch,
 } from 'react-native';
 import {
   Camera,
@@ -14,16 +15,33 @@ import {
   useCameraPermission,
   useFrameProcessor,
 } from 'react-native-vision-camera';
-import { useRunOnJS } from 'react-native-worklets-core';
+import { useRunOnJS, useSharedValue } from 'react-native-worklets-core';
 import {
   analyzePixelColors,
   type PixelColorsResult,
+  type AnalysisOptions,
 } from 'react-native-camera-vision-pixel-colors';
 
 function App(): React.JSX.Element {
   const device = useCameraDevice('back');
   const { hasPermission, requestPermission } = useCameraPermission();
   const [result, setResult] = useState<PixelColorsResult | null>(null);
+
+  // Feature toggles
+  const [enableMotion, setEnableMotion] = useState(false);
+  const [enableROI, setEnableROI] = useState(false);
+
+  // Shared values for worklet access
+  const motionEnabled = useSharedValue(false);
+  const roiEnabled = useSharedValue(false);
+
+  useEffect(() => {
+    motionEnabled.value = enableMotion;
+  }, [enableMotion, motionEnabled]);
+
+  useEffect(() => {
+    roiEnabled.value = enableROI;
+  }, [enableROI, roiEnabled]);
 
   useEffect(() => {
     if (!hasPermission) {
@@ -49,17 +67,28 @@ function App(): React.JSX.Element {
       );
       return;
     }
-  }, []);
+  }, [requestPermission]);
 
   const updateResultJS = useRunOnJS(updateResult, [updateResult]);
 
   const frameProcessor = useFrameProcessor(
     frame => {
       'worklet';
-      const colors = analyzePixelColors(frame);
+      const options: AnalysisOptions = {};
+
+      if (motionEnabled.value) {
+        options.enableMotionDetection = true;
+        options.motionThreshold = 0.1;
+      }
+
+      if (roiEnabled.value) {
+        options.roi = { x: 0.35, y: 0.35, width: 0.3, height: 0.3 };
+      }
+
+      const colors = analyzePixelColors(frame, options);
       updateResultJS(colors);
     },
-    [updateResultJS],
+    [updateResultJS, motionEnabled, roiEnabled],
   );
 
   const openSettings = useCallback(() => {
@@ -100,6 +129,26 @@ function App(): React.JSX.Element {
         isActive={true}
         frameProcessor={frameProcessor}
       />
+
+      {/* ROI overlay indicator */}
+      {enableROI && (
+        <View style={styles.roiOverlay}>
+          <View style={styles.roiBox} />
+        </View>
+      )}
+
+      {/* Feature toggles */}
+      <View style={styles.toggleContainer}>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleLabel}>Motion Detection</Text>
+          <Switch value={enableMotion} onValueChange={setEnableMotion} />
+        </View>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleLabel}>ROI (Center 30%)</Text>
+          <Switch value={enableROI} onValueChange={setEnableROI} />
+        </View>
+      </View>
+
       <View style={styles.overlay}>
         <Text style={styles.title}>Pixel Colors Analysis</Text>
         {result && (
@@ -107,6 +156,32 @@ function App(): React.JSX.Element {
             <Text style={styles.text}>
               Unique Colors: {result.uniqueColorCount}
             </Text>
+
+            {result.roiApplied && (
+              <Text style={styles.featureTag}>ROI Applied</Text>
+            )}
+
+            {result.motion && (
+              <View style={styles.motionContainer}>
+                <Text style={styles.label}>Motion:</Text>
+                <View style={styles.motionRow}>
+                  <View
+                    style={[
+                      styles.motionIndicator,
+                      {
+                        backgroundColor: result.motion.hasMotion
+                          ? '#FF4444'
+                          : '#44FF44',
+                      },
+                    ]}
+                  />
+                  <Text style={styles.text}>
+                    Score: {(result.motion.score * 100).toFixed(1)}%
+                  </Text>
+                </View>
+              </View>
+            )}
+
             <Text style={styles.label}>Top Colors:</Text>
             <View style={styles.colorRow}>
               {result.topColors.map((color, i) => (
@@ -158,6 +233,37 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     padding: 16,
   },
+  toggleContainer: {
+    position: 'absolute',
+    top: 60,
+    left: 20,
+    right: 20,
+    backgroundColor: 'rgba(0, 0, 0, 0.7)',
+    borderRadius: 12,
+    padding: 12,
+  },
+  toggleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 6,
+  },
+  toggleLabel: {
+    color: '#fff',
+    fontSize: 14,
+  },
+  roiOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  roiBox: {
+    width: '30%',
+    height: '30%',
+    borderWidth: 2,
+    borderColor: '#00FF00',
+    borderStyle: 'dashed',
+  },
   title: {
     fontSize: 18,
     fontWeight: 'bold',
@@ -174,6 +280,24 @@ const styles = StyleSheet.create({
     color: '#aaa',
     marginTop: 8,
     marginBottom: 4,
+  },
+  featureTag: {
+    fontSize: 12,
+    color: '#00FF00',
+    marginBottom: 4,
+  },
+  motionContainer: {
+    marginTop: 8,
+  },
+  motionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  motionIndicator: {
+    width: 16,
+    height: 16,
+    borderRadius: 8,
   },
   colorRow: {
     flexDirection: 'row',
