@@ -1,0 +1,28 @@
+import { NitroModules } from 'react-native-nitro-modules'
+import { VisionCameraProxy, type Frame } from 'react-native-vision-camera'
+import type {
+  CameraVisionPixelColors as CameraVisionPixelColorsSpec,
+  PixelColorsResult,
+  RGBColor,
+  ImageData,
+} from './specs/camera-vision-pixel-colors.nitro'
+
+// Nitro HybridObject for async image analysis
+export const CameraVisionPixelColors =
+  NitroModules.createHybridObject<CameraVisionPixelColorsSpec>(
+    'CameraVisionPixelColors'
+  )
+
+// Frame Processor plugin for real-time analysis
+const plugin = VisionCameraProxy.initFrameProcessorPlugin('pixelColors', {})
+
+export function analyzePixelColors(frame: Frame): PixelColorsResult {
+  'worklet'
+  if (!plugin) {
+    throw new Error('pixelColors frame processor plugin is not available')
+  }
+  return plugin.call(frame) as unknown as PixelColorsResult
+}
+
+// Re-export types
+export type { PixelColorsResult, RGBColor, ImageData }

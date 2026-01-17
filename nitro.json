@@ -1,0 +1,25 @@
+{
+  "$schema": "https://nitro.margelo.com/nitro.schema.json",
+  "cxxNamespace": [
+    "cameravisionpixelcolors"
+  ],
+  "ios": {
+    "iosModuleName": "CameraVisionPixelColors"
+  },
+  "android": {
+    "androidNamespace": [
+      "cameravisionpixelcolors"
+    ],
+    "androidCxxLibName": "CameraVisionPixelColors"
+  },
+  "autolinking": {
+    "CameraVisionPixelColors": {
+      "swift": "HybridCameraVisionPixelColors",
+      "kotlin": "HybridCameraVisionPixelColors"
+    }
+  },
+  "ignorePaths": [
+    "**/node_modules",
+    "**/docs"
+  ]
+}
