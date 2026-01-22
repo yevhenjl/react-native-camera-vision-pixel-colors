@@ -9,6 +9,7 @@ import {
   Linking,
   Switch,
 } from 'react-native';
+import Slider from '@react-native-community/slider';
 import {
   Camera,
   useCameraDevice,
@@ -30,10 +31,14 @@ function App(): React.JSX.Element {
   // Feature toggles
   const [enableMotion, setEnableMotion] = useState(false);
   const [enableROI, setEnableROI] = useState(false);
+  const [maxTopColors, setMaxTopColors] = useState(3);
+  const [maxBrightestColors, setMaxBrightestColors] = useState(3);
 
   // Shared values for worklet access
   const motionEnabled = useSharedValue(false);
   const roiEnabled = useSharedValue(false);
+  const topColorsCount = useSharedValue(3);
+  const brightestColorsCount = useSharedValue(3);
 
   useEffect(() => {
     motionEnabled.value = enableMotion;
@@ -42,6 +47,14 @@ function App(): React.JSX.Element {
   useEffect(() => {
     roiEnabled.value = enableROI;
   }, [enableROI, roiEnabled]);
+
+  useEffect(() => {
+    topColorsCount.value = maxTopColors;
+  }, [maxTopColors, topColorsCount]);
+
+  useEffect(() => {
+    brightestColorsCount.value = maxBrightestColors;
+  }, [maxBrightestColors, brightestColorsCount]);
 
   useEffect(() => {
     if (!hasPermission) {
@@ -74,7 +87,10 @@ function App(): React.JSX.Element {
   const frameProcessor = useFrameProcessor(
     frame => {
       'worklet';
-      const options: AnalysisOptions = {};
+      const options: AnalysisOptions = {
+        maxTopColors: topColorsCount.value,
+        maxBrightestColors: brightestColorsCount.value,
+      };
 
       if (motionEnabled.value) {
         options.enableMotionDetection = true;
@@ -88,7 +104,7 @@ function App(): React.JSX.Element {
       const colors = analyzePixelColors(frame, options);
       updateResultJS(colors);
     },
-    [updateResultJS, motionEnabled, roiEnabled],
+    [updateResultJS, motionEnabled, roiEnabled, topColorsCount, brightestColorsCount],
   );
 
   const openSettings = useCallback(() => {
@@ -146,6 +162,34 @@ function App(): React.JSX.Element {
         <View style={styles.toggleRow}>
           <Text style={styles.toggleLabel}>ROI (Center 30%)</Text>
           <Switch value={enableROI} onValueChange={setEnableROI} />
+        </View>
+        <View style={styles.sliderRow}>
+          <Text style={styles.toggleLabel}>Top Colors: {maxTopColors}</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={1}
+            maximumValue={10}
+            step={1}
+            value={maxTopColors}
+            onValueChange={setMaxTopColors}
+            minimumTrackTintColor="#007AFF"
+            maximumTrackTintColor="#666"
+            thumbTintColor="#007AFF"
+          />
+        </View>
+        <View style={styles.sliderRow}>
+          <Text style={styles.toggleLabel}>Brightest Colors: {maxBrightestColors}</Text>
+          <Slider
+            style={styles.slider}
+            minimumValue={1}
+            maximumValue={10}
+            step={1}
+            value={maxBrightestColors}
+            onValueChange={setMaxBrightestColors}
+            minimumTrackTintColor="#007AFF"
+            maximumTrackTintColor="#666"
+            thumbTintColor="#007AFF"
+          />
         </View>
       </View>
 
@@ -251,6 +295,13 @@ const styles = StyleSheet.create({
   toggleLabel: {
     color: '#fff',
     fontSize: 14,
+  },
+  sliderRow: {
+    paddingVertical: 6,
+  },
+  slider: {
+    width: '100%',
+    height: 30,
   },
   roiOverlay: {
     ...StyleSheet.absoluteFillObject,

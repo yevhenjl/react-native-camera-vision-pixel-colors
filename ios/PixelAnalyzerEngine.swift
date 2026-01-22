@@ -8,6 +8,8 @@ struct AnalysisOptionsNative {
   var enableMotionDetection: Bool = false
   var motionThreshold: Float = 0.1
   var roi: (x: Float, y: Float, width: Float, height: Float)?
+  var maxTopColors: Int = 3
+  var maxBrightestColors: Int = 3
 }
 
 final class PixelAnalyzerEngine {
@@ -305,7 +307,7 @@ final class PixelAnalyzerEngine {
                      format: .RGBA32,
                      colorSpace: CGColorSpaceCreateDeviceRGB())
 
-    var result = reduceHistogram(bitmap)
+    var result = reduceHistogram(bitmap, maxTopColors: options.maxTopColors, maxBrightestColors: options.maxBrightestColors)
 
     // Add ROI applied flag
     if options.roi != nil {
@@ -321,7 +323,7 @@ final class PixelAnalyzerEngine {
     return result
   }
 
-  private func reduceHistogram(_ data: [UInt32]) -> [String: Any] {
+  private func reduceHistogram(_ data: [UInt32], maxTopColors: Int = 3, maxBrightestColors: Int = 3) -> [String: Any] {
     struct Stat { let r: Int; let g: Int; let b: Int; let count: Int; let brightness: Float }
     var stats: [Stat] = []
     for i in stride(from: 0, to: data.count, by: 4) {
@@ -334,8 +336,10 @@ final class PixelAnalyzerEngine {
       stats.append(Stat(r: r, g: g, b: b, count: count, brightness: brightness))
     }
 
-    let top = stats.sorted { $0.count > $1.count }.prefix(3).map { ["r": $0.r, "g": $0.g, "b": $0.b] }
-    let bright = stats.sorted { $0.brightness > $1.brightness }.prefix(3).map { ["r": $0.r, "g": $0.g, "b": $0.b] }
+    let clampedTop = max(1, min(10, maxTopColors))
+    let clampedBright = max(1, min(10, maxBrightestColors))
+    let top = stats.sorted { $0.count > $1.count }.prefix(clampedTop).map { ["r": $0.r, "g": $0.g, "b": $0.b] }
+    let bright = stats.sorted { $0.brightness > $1.brightness }.prefix(clampedBright).map { ["r": $0.r, "g": $0.g, "b": $0.b] }
 
     return [
       "uniqueColorCount": stats.count,

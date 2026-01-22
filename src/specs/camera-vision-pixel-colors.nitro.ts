@@ -13,6 +13,8 @@ export type AnalysisOptions = {
   enableMotionDetection?: boolean // default: false
   motionThreshold?: number // default: 0.1
   roi?: ROIConfig // if provided, analyze only this region
+  maxTopColors?: number // default: 3, range: 1-10
+  maxBrightestColors?: number // default: 3, range: 1-10
 }
 
 export type MotionResult = {

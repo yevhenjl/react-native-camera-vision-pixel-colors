@@ -45,6 +45,14 @@ public final class PixelColorsFrameProcessor: FrameProcessorPlugin {
       options.roi = (x: Float(x), y: Float(y), width: Float(width), height: Float(height))
     }
 
+    if let maxTopColors = optionsDict["maxTopColors"] as? Int {
+      options.maxTopColors = maxTopColors
+    }
+
+    if let maxBrightestColors = optionsDict["maxBrightestColors"] as? Int {
+      options.maxBrightestColors = maxBrightestColors
+    }
+
     return options
   }
 }

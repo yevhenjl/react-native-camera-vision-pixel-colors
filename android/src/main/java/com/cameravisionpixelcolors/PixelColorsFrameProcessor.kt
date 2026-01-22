@@ -31,10 +31,15 @@ class PixelColorsFrameProcessor(proxy: VisionCameraProxy, options: Map<String, A
       ROIConfig(x, y, width, height)
     } else null
 
+    val maxTopColors = (optionsMap["maxTopColors"] as? Number)?.toInt() ?: 3
+    val maxBrightestColors = (optionsMap["maxBrightestColors"] as? Number)?.toInt() ?: 3
+
     return AnalysisOptions(
       enableMotionDetection = enableMotionDetection,
       motionThreshold = motionThreshold,
-      roi = roi
+      roi = roi,
+      maxTopColors = maxTopColors,
+      maxBrightestColors = maxBrightestColors
     )
   }
 }
