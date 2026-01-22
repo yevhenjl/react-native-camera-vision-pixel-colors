@@ -2,8 +2,8 @@
 
 High-performance **Vision Camera Frame Processor** for React Native (Expo compatible) that analyzes pixel colors **in real time**.
 This plugin extracts:
-- **Top 3 most frequent colors (RGB)**
-- **Top 3 brightest colors (RGB)**
+- **Up to 10 most frequent colors (RGB)** (configurable)
+- **Up to 10 brightest colors (RGB)** (configurable)
 - **Total number of unique colors**
 - **ROI analysis (configurable region)**
 - **Motion detection (frame diff)**
@@ -97,6 +97,10 @@ const frameProcessor = useFrameProcessor((frame) => {
     // Enable motion detection
     enableMotionDetection: true,
     motionThreshold: 0.1, // 0-1, default: 0.1
+
+    // Configure color counts (1-10, default: 3)
+    maxTopColors: 5,
+    maxBrightestColors: 5,
   };
 
   const result = analyzePixelColors(frame, options);
@@ -145,6 +149,8 @@ type AnalysisOptions = {
   enableMotionDetection?: boolean; // default: false
   motionThreshold?: number;        // default: 0.1
   roi?: ROIConfig;                 // if provided, analyze only this region
+  maxTopColors?: number;           // default: 3, range: 1-10
+  maxBrightestColors?: number;     // default: 3, range: 1-10
 };
 
 type MotionResult = {

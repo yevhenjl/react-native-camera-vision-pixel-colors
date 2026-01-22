@@ -12,7 +12,9 @@ import kotlin.math.min
 data class AnalysisOptions(
   val enableMotionDetection: Boolean = false,
   val motionThreshold: Float = 0.1f,
-  val roi: ROIConfig? = null
+  val roi: ROIConfig? = null,
+  val maxTopColors: Int = 3,
+  val maxBrightestColors: Int = 3
 )
 
 data class ROIConfig(
@@ -200,16 +202,18 @@ object PixelAnalyzerEngine {
       localBrightnessSum[idx] += brightness
     }
 
-    val topColors = ArrayList<Pair<Int, Int>>(3)
-    val topBright = ArrayList<Pair<Int, Int>>(3)
+    val clampedTop = max(1, min(10, options.maxTopColors))
+    val clampedBright = max(1, min(10, options.maxBrightestColors))
+    val topColors = ArrayList<Pair<Int, Int>>(clampedTop)
+    val topBright = ArrayList<Pair<Int, Int>>(clampedBright)
     var uniqueCount = 0
     for (i in 0 until BUCKETS) {
       val count = localHistogram[i]
       if (count == 0) continue
       uniqueCount++
-      insertTop(topColors, i, count)
+      insertTop(topColors, i, count, clampedTop)
       val avgBrightness = localBrightnessSum[i] / max(count, 1)
-      insertTop(topBright, i, avgBrightness)
+      insertTop(topBright, i, avgBrightness, clampedBright)
     }
 
     fun decode(idx: Int): Map<String, Int> {
@@ -245,12 +249,12 @@ object PixelAnalyzerEngine {
     cachedResult.set(result)
   }
 
-  private fun insertTop(list: MutableList<Pair<Int, Int>>, idx: Int, value: Int) {
+  private fun insertTop(list: MutableList<Pair<Int, Int>>, idx: Int, value: Int, maxSize: Int) {
     var i = 0
     while (i < list.size && value <= list[i].second) i++
-    if (i < 3) {
+    if (i < maxSize) {
       list.add(i, idx to value)
-      if (list.size > 3) list.removeAt(3)
+      if (list.size > maxSize) list.removeAt(maxSize)
     }
   }
 }
