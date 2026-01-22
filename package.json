@@ -1,6 +1,6 @@
 {
   "name": "react-native-camera-vision-pixel-colors",
-  "version": "0.1.1",
+  "version": "1.0.0",
   "description": "Vision Camera Frame Processor plugin for real-time pixel color analysis - extract dominant colors, brightness, ROI, motion detection",
   "main": "./lib/commonjs/index.js",
   "module": "./lib/module/index.js",
