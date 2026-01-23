@@ -8,6 +8,10 @@
 #pragma once
 
 // Forward declarations of C++ defined types
+// Forward declaration of `ColorInfo` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct ColorInfo; }
+// Forward declaration of `HSVColor` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct HSVColor; }
 // Forward declaration of `HybridCameraVisionPixelColorsSpec` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { class HybridCameraVisionPixelColorsSpec; }
 // Forward declaration of `ImageData` to properly resolve imports.
@@ -16,15 +20,14 @@ namespace margelo::nitro::cameravisionpixelcolors { struct ImageData; }
 namespace margelo::nitro::cameravisionpixelcolors { struct MotionResult; }
 // Forward declaration of `PixelColorsResult` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct PixelColorsResult; }
-// Forward declaration of `RGBColor` to properly resolve imports.
-namespace margelo::nitro::cameravisionpixelcolors { struct RGBColor; }
 
 // Include C++ defined types
+#include "ColorInfo.hpp"
+#include "HSVColor.hpp"
 #include "HybridCameraVisionPixelColorsSpec.hpp"
 #include "ImageData.hpp"
 #include "MotionResult.hpp"
 #include "PixelColorsResult.hpp"
-#include "RGBColor.hpp"
 #include <NitroModules/ArrayBuffer.hpp>
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/Result.hpp>

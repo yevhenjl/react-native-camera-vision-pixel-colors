@@ -68,3 +68,8 @@ Frame processor runs synchronously on native thread. Avoid:
 - Large data transfers across bridge
 
 Reuse buffers where possible.
+
+## Documentation web links
+
+- react-native-nitro-modules https://nitro.margelo.com/docs/what-is-nitro
+- react-native-vision-camera https://react-native-vision-camera.com/docs/guides

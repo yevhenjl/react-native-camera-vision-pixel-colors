@@ -1,11 +1,12 @@
-package com.margelo.nitro.cameravisionpixelcolors
+package com.cameravisionpixelcolors
 
-import com.cameravisionpixelcolors.PixelAnalyzerEngine
+import com.margelo.nitro.cameravisionpixelcolors.ColorInfo
+import com.margelo.nitro.cameravisionpixelcolors.HybridCameraVisionPixelColorsSpec
+import com.margelo.nitro.cameravisionpixelcolors.ImageData
+import com.margelo.nitro.cameravisionpixelcolors.PixelColorsResult
 import com.margelo.nitro.core.Promise
-import java.util.concurrent.Executors
 
 class HybridCameraVisionPixelColors: HybridCameraVisionPixelColorsSpec() {
-    private val executor = Executors.newSingleThreadExecutor()
 
     override fun analyzeImageAsync(image: ImageData): Promise<PixelColorsResult> {
         return Promise.async {
@@ -23,18 +24,22 @@ class HybridCameraVisionPixelColors: HybridCameraVisionPixelColorsSpec() {
             val brightestColorsMap = result["brightestColors"] as? List<Map<String, Int>> ?: emptyList()
 
             val topColors = topColorsMap.map { map ->
-                RGBColor(
+                ColorInfo(
                     r = (map["r"] ?: 0).toDouble(),
                     g = (map["g"] ?: 0).toDouble(),
-                    b = (map["b"] ?: 0).toDouble()
+                    b = (map["b"] ?: 0).toDouble(),
+                    hsv = null,
+                    pixelPercentage = null
                 )
             }.toTypedArray()
 
             val brightestColors = brightestColorsMap.map { map ->
-                RGBColor(
+                ColorInfo(
                     r = (map["r"] ?: 0).toDouble(),
                     g = (map["g"] ?: 0).toDouble(),
-                    b = (map["b"] ?: 0).toDouble()
+                    b = (map["b"] ?: 0).toDouble(),
+                    hsv = null,
+                    pixelPercentage = null
                 )
             }.toTypedArray()
 
@@ -43,7 +48,8 @@ class HybridCameraVisionPixelColors: HybridCameraVisionPixelColorsSpec() {
                 topColors = topColors,
                 brightestColors = brightestColors,
                 motion = null,
-                roiApplied = null
+                roiApplied = null,
+                totalPixelsAnalyzed = (width * height).toDouble()
             )
         }
     }

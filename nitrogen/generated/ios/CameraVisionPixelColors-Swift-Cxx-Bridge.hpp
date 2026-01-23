@@ -8,24 +8,27 @@
 #pragma once
 
 // Forward declarations of C++ defined types
+// Forward declaration of `ColorInfo` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct ColorInfo; }
+// Forward declaration of `HSVColor` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct HSVColor; }
 // Forward declaration of `HybridCameraVisionPixelColorsSpec` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { class HybridCameraVisionPixelColorsSpec; }
 // Forward declaration of `MotionResult` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct MotionResult; }
 // Forward declaration of `PixelColorsResult` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct PixelColorsResult; }
-// Forward declaration of `RGBColor` to properly resolve imports.
-namespace margelo::nitro::cameravisionpixelcolors { struct RGBColor; }
 
 // Forward declarations of Swift defined types
 // Forward declaration of `HybridCameraVisionPixelColorsSpec_cxx` to properly resolve imports.
 namespace CameraVisionPixelColors { class HybridCameraVisionPixelColorsSpec_cxx; }
 
 // Include C++ defined types
+#include "ColorInfo.hpp"
+#include "HSVColor.hpp"
 #include "HybridCameraVisionPixelColorsSpec.hpp"
 #include "MotionResult.hpp"
 #include "PixelColorsResult.hpp"
-#include "RGBColor.hpp"
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/PromiseHolder.hpp>
 #include <NitroModules/Result.hpp>
@@ -41,13 +44,43 @@ namespace CameraVisionPixelColors { class HybridCameraVisionPixelColorsSpec_cxx;
  */
 namespace margelo::nitro::cameravisionpixelcolors::bridge::swift {
 
-  // pragma MARK: std::vector<RGBColor>
+  // pragma MARK: std::optional<HSVColor>
   /**
-   * Specialized version of `std::vector<RGBColor>`.
+   * Specialized version of `std::optional<HSVColor>`.
    */
-  using std__vector_RGBColor_ = std::vector<RGBColor>;
-  inline std::vector<RGBColor> create_std__vector_RGBColor_(size_t size) noexcept {
-    std::vector<RGBColor> vector;
+  using std__optional_HSVColor_ = std::optional<HSVColor>;
+  inline std::optional<HSVColor> create_std__optional_HSVColor_(const HSVColor& value) noexcept {
+    return std::optional<HSVColor>(value);
+  }
+  inline bool has_value_std__optional_HSVColor_(const std::optional<HSVColor>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline HSVColor get_std__optional_HSVColor_(const std::optional<HSVColor>& optional) noexcept {
+    return *optional;
+  }
+  
+  // pragma MARK: std::optional<double>
+  /**
+   * Specialized version of `std::optional<double>`.
+   */
+  using std__optional_double_ = std::optional<double>;
+  inline std::optional<double> create_std__optional_double_(const double& value) noexcept {
+    return std::optional<double>(value);
+  }
+  inline bool has_value_std__optional_double_(const std::optional<double>& optional) noexcept {
+    return optional.has_value();
+  }
+  inline double get_std__optional_double_(const std::optional<double>& optional) noexcept {
+    return *optional;
+  }
+  
+  // pragma MARK: std::vector<ColorInfo>
+  /**
+   * Specialized version of `std::vector<ColorInfo>`.
+   */
+  using std__vector_ColorInfo_ = std::vector<ColorInfo>;
+  inline std::vector<ColorInfo> create_std__vector_ColorInfo_(size_t size) noexcept {
+    std::vector<ColorInfo> vector;
     vector.reserve(size);
     return vector;
   }

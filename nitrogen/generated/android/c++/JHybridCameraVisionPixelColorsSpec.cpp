@@ -9,8 +9,10 @@
 
 // Forward declaration of `PixelColorsResult` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct PixelColorsResult; }
-// Forward declaration of `RGBColor` to properly resolve imports.
-namespace margelo::nitro::cameravisionpixelcolors { struct RGBColor; }
+// Forward declaration of `ColorInfo` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct ColorInfo; }
+// Forward declaration of `HSVColor` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct HSVColor; }
 // Forward declaration of `MotionResult` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct MotionResult; }
 // Forward declaration of `ImageData` to properly resolve imports.
@@ -20,11 +22,13 @@ namespace margelo::nitro::cameravisionpixelcolors { struct ImageData; }
 #include <NitroModules/Promise.hpp>
 #include <NitroModules/JPromise.hpp>
 #include "JPixelColorsResult.hpp"
-#include "RGBColor.hpp"
+#include "ColorInfo.hpp"
 #include <vector>
-#include "JRGBColor.hpp"
-#include "MotionResult.hpp"
+#include "JColorInfo.hpp"
+#include "HSVColor.hpp"
 #include <optional>
+#include "JHSVColor.hpp"
+#include "MotionResult.hpp"
 #include "JMotionResult.hpp"
 #include "ImageData.hpp"
 #include "JImageData.hpp"

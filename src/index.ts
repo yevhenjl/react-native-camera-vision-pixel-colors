@@ -4,6 +4,8 @@ import type {
   CameraVisionPixelColors as CameraVisionPixelColorsSpec,
   PixelColorsResult,
   RGBColor,
+  HSVColor,
+  ColorInfo,
   ImageData,
   ROIConfig,
   AnalysisOptions,
@@ -35,6 +37,8 @@ export function analyzePixelColors(
 export type {
   PixelColorsResult,
   RGBColor,
+  HSVColor,
+  ColorInfo,
   ImageData,
   ROIConfig,
   AnalysisOptions,
