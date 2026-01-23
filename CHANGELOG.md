@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/yevhenjl/react-native-camera-vision-pixel-colors/compare/v1.0.0...v1.1.0) (2026-01-23)
+
+### ✨ Features
+
+* add HSV color analysis and pixel threshold filtering ([e9bf933](https://github.com/yevhenjl/react-native-camera-vision-pixel-colors/commit/e9bf933a21a8adbc6dd4f319e3eb3bb6e8b0ab28))
+
 ## 1.0.0 (2026-01-22)
 
 ### ✨ Features
