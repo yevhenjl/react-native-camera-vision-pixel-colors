@@ -1,6 +1,7 @@
 package com.cameravisionpixelcolors
 
 import android.graphics.Bitmap
+import android.graphics.Color
 import android.graphics.Rect
 import java.nio.ByteBuffer
 import java.util.concurrent.Executors
@@ -14,7 +15,9 @@ data class AnalysisOptions(
   val motionThreshold: Float = 0.1f,
   val roi: ROIConfig? = null,
   val maxTopColors: Int = 3,
-  val maxBrightestColors: Int = 3
+  val maxBrightestColors: Int = 3,
+  val enableHsvAnalysis: Boolean = false,
+  val minPixelThreshold: Float = 0.0f
 )
 
 data class ROIConfig(
@@ -202,33 +205,62 @@ object PixelAnalyzerEngine {
       localBrightnessSum[idx] += brightness
     }
 
+    // Calculate total pixel count for threshold filtering
+    val totalPixelCount = size
+    val thresholdCount = (totalPixelCount * options.minPixelThreshold).toInt()
+
     val clampedTop = max(1, min(10, options.maxTopColors))
     val clampedBright = max(1, min(10, options.maxBrightestColors))
-    val topColors = ArrayList<Pair<Int, Int>>(clampedTop)
-    val topBright = ArrayList<Pair<Int, Int>>(clampedBright)
+    val topColors = ArrayList<Triple<Int, Int, Int>>(clampedTop) // idx, count, brightness
+    val topBright = ArrayList<Triple<Int, Int, Int>>(clampedBright)
     var uniqueCount = 0
     for (i in 0 until BUCKETS) {
       val count = localHistogram[i]
       if (count == 0) continue
+      // Filter by threshold if set
+      if (options.minPixelThreshold > 0 && count < thresholdCount) continue
       uniqueCount++
-      insertTop(topColors, i, count, clampedTop)
       val avgBrightness = localBrightnessSum[i] / max(count, 1)
-      insertTop(topBright, i, avgBrightness, clampedBright)
+      insertTopTriple(topColors, i, count, avgBrightness, clampedTop)
+      insertTopBrightTriple(topBright, i, avgBrightness, count, clampedBright)
     }
 
-    fun decode(idx: Int): Map<String, Int> {
-      return mapOf(
-        "r" to ((idx shr 10) and 31 shl 3),
-        "g" to ((idx shr 5) and 31 shl 3),
-        "b" to ((idx and 31) shl 3)
-      )
+    // Decode bucket index to RGB with optional HSV and pixelPercentage
+    fun decode(idx: Int, count: Int): Map<String, Any> {
+      val r = (idx shr 10) and 31 shl 3
+      val g = (idx shr 5) and 31 shl 3
+      val b = (idx and 31) shl 3
+      val result = mutableMapOf<String, Any>("r" to r, "g" to g, "b" to b)
+
+      if (options.enableHsvAnalysis) {
+        val hsv = FloatArray(3)
+        Color.RGBToHSV(r, g, b, hsv)
+        // hsv[0] is 0-360, hsv[1] and hsv[2] are 0-1, convert to 0-100
+        // Use Double for JSI bridge compatibility (Float not supported)
+        result["hsv"] = mapOf(
+          "h" to hsv[0].toDouble(),
+          "s" to (hsv[1] * 100f).toDouble(),
+          "v" to (hsv[2] * 100f).toDouble()
+        )
+      }
+
+      if (options.minPixelThreshold > 0 && totalPixelCount > 0) {
+        result["pixelPercentage"] = count.toDouble() / totalPixelCount
+      }
+
+      return result
     }
 
     val result = mutableMapOf<String, Any>(
       "uniqueColorCount" to uniqueCount,
-      "topColors" to topColors.map { decode(it.first) },
-      "brightestColors" to topBright.map { decode(it.first) }
+      "topColors" to topColors.map { decode(it.first, it.second) },
+      "brightestColors" to topBright.map { decode(it.first, it.third) }
     )
+
+    // Add totalPixelsAnalyzed if using HSV or threshold
+    if (options.minPixelThreshold > 0 || options.enableHsvAnalysis) {
+      result["totalPixelsAnalyzed"] = totalPixelCount
+    }
 
     // Add ROI applied flag
     if (options.roi != null) {
@@ -242,6 +274,26 @@ object PixelAnalyzerEngine {
     }
 
     return result
+  }
+
+  // Insert into sorted list by count (descending), storing idx, count, brightness
+  private fun insertTopTriple(list: MutableList<Triple<Int, Int, Int>>, idx: Int, count: Int, brightness: Int, maxSize: Int) {
+    var i = 0
+    while (i < list.size && count <= list[i].second) i++
+    if (i < maxSize) {
+      list.add(i, Triple(idx, count, brightness))
+      if (list.size > maxSize) list.removeAt(maxSize)
+    }
+  }
+
+  // Insert into sorted list by brightness (descending), storing idx, brightness, count
+  private fun insertTopBrightTriple(list: MutableList<Triple<Int, Int, Int>>, idx: Int, brightness: Int, count: Int, maxSize: Int) {
+    var i = 0
+    while (i < list.size && brightness <= list[i].second) i++
+    if (i < maxSize) {
+      list.add(i, Triple(idx, brightness, count))
+      if (list.size > maxSize) list.removeAt(maxSize)
+    }
   }
 
   private fun analyze(bitmap: Bitmap, options: AnalysisOptions = AnalysisOptions()) {

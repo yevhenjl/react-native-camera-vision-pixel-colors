@@ -10,10 +10,12 @@
 #include <fbjni/fbjni.h>
 #include "PixelColorsResult.hpp"
 
+#include "ColorInfo.hpp"
+#include "HSVColor.hpp"
+#include "JColorInfo.hpp"
+#include "JHSVColor.hpp"
 #include "JMotionResult.hpp"
-#include "JRGBColor.hpp"
 #include "MotionResult.hpp"
-#include "RGBColor.hpp"
 #include <optional>
 #include <vector>
 
@@ -38,19 +40,21 @@ namespace margelo::nitro::cameravisionpixelcolors {
       static const auto clazz = javaClassStatic();
       static const auto fieldUniqueColorCount = clazz->getField<double>("uniqueColorCount");
       double uniqueColorCount = this->getFieldValue(fieldUniqueColorCount);
-      static const auto fieldTopColors = clazz->getField<jni::JArrayClass<JRGBColor>>("topColors");
-      jni::local_ref<jni::JArrayClass<JRGBColor>> topColors = this->getFieldValue(fieldTopColors);
-      static const auto fieldBrightestColors = clazz->getField<jni::JArrayClass<JRGBColor>>("brightestColors");
-      jni::local_ref<jni::JArrayClass<JRGBColor>> brightestColors = this->getFieldValue(fieldBrightestColors);
+      static const auto fieldTopColors = clazz->getField<jni::JArrayClass<JColorInfo>>("topColors");
+      jni::local_ref<jni::JArrayClass<JColorInfo>> topColors = this->getFieldValue(fieldTopColors);
+      static const auto fieldBrightestColors = clazz->getField<jni::JArrayClass<JColorInfo>>("brightestColors");
+      jni::local_ref<jni::JArrayClass<JColorInfo>> brightestColors = this->getFieldValue(fieldBrightestColors);
       static const auto fieldMotion = clazz->getField<JMotionResult>("motion");
       jni::local_ref<JMotionResult> motion = this->getFieldValue(fieldMotion);
       static const auto fieldRoiApplied = clazz->getField<jni::JBoolean>("roiApplied");
       jni::local_ref<jni::JBoolean> roiApplied = this->getFieldValue(fieldRoiApplied);
+      static const auto fieldTotalPixelsAnalyzed = clazz->getField<jni::JDouble>("totalPixelsAnalyzed");
+      jni::local_ref<jni::JDouble> totalPixelsAnalyzed = this->getFieldValue(fieldTotalPixelsAnalyzed);
       return PixelColorsResult(
         uniqueColorCount,
         [&]() {
           size_t __size = topColors->size();
-          std::vector<RGBColor> __vector;
+          std::vector<ColorInfo> __vector;
           __vector.reserve(__size);
           for (size_t __i = 0; __i < __size; __i++) {
             auto __element = topColors->getElement(__i);
@@ -60,7 +64,7 @@ namespace margelo::nitro::cameravisionpixelcolors {
         }(),
         [&]() {
           size_t __size = brightestColors->size();
-          std::vector<RGBColor> __vector;
+          std::vector<ColorInfo> __vector;
           __vector.reserve(__size);
           for (size_t __i = 0; __i < __size; __i++) {
             auto __element = brightestColors->getElement(__i);
@@ -69,7 +73,8 @@ namespace margelo::nitro::cameravisionpixelcolors {
           return __vector;
         }(),
         motion != nullptr ? std::make_optional(motion->toCpp()) : std::nullopt,
-        roiApplied != nullptr ? std::make_optional(static_cast<bool>(roiApplied->value())) : std::nullopt
+        roiApplied != nullptr ? std::make_optional(static_cast<bool>(roiApplied->value())) : std::nullopt,
+        totalPixelsAnalyzed != nullptr ? std::make_optional(totalPixelsAnalyzed->value()) : std::nullopt
       );
     }
 
@@ -79,7 +84,7 @@ namespace margelo::nitro::cameravisionpixelcolors {
      */
     [[maybe_unused]]
     static jni::local_ref<JPixelColorsResult::javaobject> fromCpp(const PixelColorsResult& value) {
-      using JSignature = JPixelColorsResult(double, jni::alias_ref<jni::JArrayClass<JRGBColor>>, jni::alias_ref<jni::JArrayClass<JRGBColor>>, jni::alias_ref<JMotionResult>, jni::alias_ref<jni::JBoolean>);
+      using JSignature = JPixelColorsResult(double, jni::alias_ref<jni::JArrayClass<JColorInfo>>, jni::alias_ref<jni::JArrayClass<JColorInfo>>, jni::alias_ref<JMotionResult>, jni::alias_ref<jni::JBoolean>, jni::alias_ref<jni::JDouble>);
       static const auto clazz = javaClassStatic();
       static const auto create = clazz->getStaticMethod<JSignature>("fromCpp");
       return create(
@@ -87,26 +92,27 @@ namespace margelo::nitro::cameravisionpixelcolors {
         value.uniqueColorCount,
         [&]() {
           size_t __size = value.topColors.size();
-          jni::local_ref<jni::JArrayClass<JRGBColor>> __array = jni::JArrayClass<JRGBColor>::newArray(__size);
+          jni::local_ref<jni::JArrayClass<JColorInfo>> __array = jni::JArrayClass<JColorInfo>::newArray(__size);
           for (size_t __i = 0; __i < __size; __i++) {
             const auto& __element = value.topColors[__i];
-            auto __elementJni = JRGBColor::fromCpp(__element);
+            auto __elementJni = JColorInfo::fromCpp(__element);
             __array->setElement(__i, *__elementJni);
           }
           return __array;
         }(),
         [&]() {
           size_t __size = value.brightestColors.size();
-          jni::local_ref<jni::JArrayClass<JRGBColor>> __array = jni::JArrayClass<JRGBColor>::newArray(__size);
+          jni::local_ref<jni::JArrayClass<JColorInfo>> __array = jni::JArrayClass<JColorInfo>::newArray(__size);
           for (size_t __i = 0; __i < __size; __i++) {
             const auto& __element = value.brightestColors[__i];
-            auto __elementJni = JRGBColor::fromCpp(__element);
+            auto __elementJni = JColorInfo::fromCpp(__element);
             __array->setElement(__i, *__elementJni);
           }
           return __array;
         }(),
         value.motion.has_value() ? JMotionResult::fromCpp(value.motion.value()) : nullptr,
-        value.roiApplied.has_value() ? jni::JBoolean::valueOf(value.roiApplied.value()) : nullptr
+        value.roiApplied.has_value() ? jni::JBoolean::valueOf(value.roiApplied.value()) : nullptr,
+        value.totalPixelsAnalyzed.has_value() ? jni::JDouble::valueOf(value.totalPixelsAnalyzed.value()) : nullptr
       );
     }
   };

@@ -2,11 +2,13 @@
 
 High-performance **Vision Camera Frame Processor** for React Native (Expo compatible) that analyzes pixel colors **in real time**.
 This plugin extracts:
-- **Up to 10 most frequent colors (RGB)** (configurable)
-- **Up to 10 brightest colors (RGB)** (configurable)
+- **Up to 10 most frequent colors (RGB + optional HSV)** (configurable)
+- **Up to 10 brightest colors (RGB + optional HSV)** (configurable)
 - **Total number of unique colors**
 - **ROI analysis (configurable region)**
 - **Motion detection (frame diff)**
+- **HSV color space conversion** (optional)
+- **Pixel threshold filtering** (filter out colors below % threshold)
 
 It is implemented using **Nitro Modules** and runs **synchronously on the native thread** for use as a Vision Camera frame processor, while also exposing an async Nitro API for offline image analysis.
 
@@ -18,6 +20,8 @@ It is implemented using **Nitro Modules** and runs **synchronously on the native
 - Brightness-based color ranking
 - ROI analysis (configurable region)
 - Motion detection (frame diff)
+- **HSV color space conversion** (h: 0-360, s: 0-100, v: 0-100)
+- **Pixel threshold filtering** (ignore colors below % of total pixels)
 - Works directly on camera frames (Vision Camera)
 - Written in **Swift (iOS)** and **Kotlin (Android)**
 - Expo compatible via Config Plugin
@@ -57,8 +61,7 @@ Add to `app.json` (or `app.config.js`) plugins:
 Then:
 ```bash
 npx expo prebuild
-eas build -p ios
-eas build -p android
+eas build -p all
 ```
 
 ---
@@ -101,12 +104,29 @@ const frameProcessor = useFrameProcessor((frame) => {
     // Configure color counts (1-10, default: 3)
     maxTopColors: 5,
     maxBrightestColors: 5,
+
+    // Enable HSV color space conversion
+    enableHsvAnalysis: true,
+
+    // Filter out colors below 0.2% of total pixels
+    minPixelThreshold: 0.002,
   };
 
   const result = analyzePixelColors(frame, options);
 
   if (result.motion?.hasMotion) {
     console.log('Motion detected!', result.motion.score);
+  }
+
+  // Access HSV values (when enableHsvAnalysis=true)
+  const topColor = result.topColors[0];
+  if (topColor?.hsv) {
+    console.log(`Hue: ${topColor.hsv.h}, Sat: ${topColor.hsv.s}, Val: ${topColor.hsv.v}`);
+  }
+
+  // Access pixel percentage (when minPixelThreshold is set)
+  if (topColor?.pixelPercentage) {
+    console.log(`This color represents ${topColor.pixelPercentage * 100}% of pixels`);
   }
 }, []);
 ```
@@ -127,6 +147,8 @@ All types are exported from the library:
 ```ts
 import {
   type RGBColor,
+  type HSVColor,
+  type ColorInfo,
   type PixelColorsResult,
   type ImageData,
   type AnalysisOptions,
@@ -137,6 +159,20 @@ import {
 
 ```ts
 type RGBColor = { r: number; g: number; b: number };
+
+type HSVColor = {
+  h: number; // 0-360 (hue)
+  s: number; // 0-100 (saturation)
+  v: number; // 0-100 (value/brightness)
+};
+
+type ColorInfo = {
+  r: number;
+  g: number;
+  b: number;
+  hsv?: HSVColor;          // present when enableHsvAnalysis=true
+  pixelPercentage?: number; // 0-1, present when minPixelThreshold is set
+};
 
 type ROIConfig = {
   x: number;      // 0-1 normalized
@@ -151,6 +187,8 @@ type AnalysisOptions = {
   roi?: ROIConfig;                 // if provided, analyze only this region
   maxTopColors?: number;           // default: 3, range: 1-10
   maxBrightestColors?: number;     // default: 3, range: 1-10
+  enableHsvAnalysis?: boolean;     // default: false
+  minPixelThreshold?: number;      // 0-1, e.g., 0.002 = 0.2%
 };
 
 type MotionResult = {
@@ -160,10 +198,11 @@ type MotionResult = {
 
 type PixelColorsResult = {
   uniqueColorCount: number;
-  topColors: RGBColor[];
-  brightestColors: RGBColor[];
-  motion?: MotionResult;     // always present if enableMotionDetection=true
-  roiApplied?: boolean;      // true if ROI config was provided
+  topColors: ColorInfo[];      // extends RGBColor with optional hsv/pixelPercentage
+  brightestColors: ColorInfo[]; // extends RGBColor with optional hsv/pixelPercentage
+  motion?: MotionResult;       // always present if enableMotionDetection=true
+  roiApplied?: boolean;        // true if ROI config was provided
+  totalPixelsAnalyzed?: number; // present when HSV or threshold enabled
 };
 
 type ImageData = {
@@ -184,6 +223,8 @@ type ImageData = {
 - **Motion detection**: Uses grayscale comparison with configurable threshold
 - **ROI**: Crops before analysis for improved performance on smaller regions
 - **First frame motion**: Returns `{score: 0, hasMotion: false}` (not null)
+- **HSV analysis**: Minimal overhead, computed only for returned colors (not all pixels)
+- **Pixel threshold**: Filters noise by ignoring colors below specified % of total pixels
 
 ---
 

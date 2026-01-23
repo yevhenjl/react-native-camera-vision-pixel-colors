@@ -33,7 +33,7 @@ int initialize(JavaVM* vm) {
     HybridObjectRegistry::registerHybridObjectConstructor(
       "CameraVisionPixelColors",
       []() -> std::shared_ptr<HybridObject> {
-        static DefaultConstructableObject<JHybridCameraVisionPixelColorsSpec::javaobject> object("com/margelo/nitro/cameravisionpixelcolors/HybridCameraVisionPixelColors");
+        static DefaultConstructableObject<JHybridCameraVisionPixelColorsSpec::javaobject> object("com/cameravisionpixelcolors/HybridCameraVisionPixelColors");
         auto instance = object.create();
         return instance->cthis()->shared();
       }

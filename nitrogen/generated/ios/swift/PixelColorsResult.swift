@@ -19,15 +19,15 @@ public extension PixelColorsResult {
   /**
    * Create a new instance of `PixelColorsResult`.
    */
-  init(uniqueColorCount: Double, topColors: [RGBColor], brightestColors: [RGBColor], motion: MotionResult?, roiApplied: Bool?) {
-    self.init(uniqueColorCount, { () -> bridge.std__vector_RGBColor_ in
-      var __vector = bridge.create_std__vector_RGBColor_(topColors.count)
+  init(uniqueColorCount: Double, topColors: [ColorInfo], brightestColors: [ColorInfo], motion: MotionResult?, roiApplied: Bool?, totalPixelsAnalyzed: Double?) {
+    self.init(uniqueColorCount, { () -> bridge.std__vector_ColorInfo_ in
+      var __vector = bridge.create_std__vector_ColorInfo_(topColors.count)
       for __item in topColors {
         __vector.push_back(__item)
       }
       return __vector
-    }(), { () -> bridge.std__vector_RGBColor_ in
-      var __vector = bridge.create_std__vector_RGBColor_(brightestColors.count)
+    }(), { () -> bridge.std__vector_ColorInfo_ in
+      var __vector = bridge.create_std__vector_ColorInfo_(brightestColors.count)
       for __item in brightestColors {
         __vector.push_back(__item)
       }
@@ -44,6 +44,12 @@ public extension PixelColorsResult {
       } else {
         return .init()
       }
+    }(), { () -> bridge.std__optional_double_ in
+      if let __unwrappedValue = totalPixelsAnalyzed {
+        return bridge.create_std__optional_double_(__unwrappedValue)
+      } else {
+        return .init()
+      }
     }())
   }
 
@@ -53,12 +59,12 @@ public extension PixelColorsResult {
   }
   
   @inline(__always)
-  var topColors: [RGBColor] {
+  var topColors: [ColorInfo] {
     return self.__topColors.map({ __item in __item })
   }
   
   @inline(__always)
-  var brightestColors: [RGBColor] {
+  var brightestColors: [ColorInfo] {
     return self.__brightestColors.map({ __item in __item })
   }
   
@@ -77,5 +83,10 @@ public extension PixelColorsResult {
         return nil
       }
     }()
+  }
+  
+  @inline(__always)
+  var totalPixelsAnalyzed: Double? {
+    return self.__totalPixelsAnalyzed.value
   }
 }

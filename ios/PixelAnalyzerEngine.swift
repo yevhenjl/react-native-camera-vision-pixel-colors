@@ -10,6 +10,8 @@ struct AnalysisOptionsNative {
   var roi: (x: Float, y: Float, width: Float, height: Float)?
   var maxTopColors: Int = 3
   var maxBrightestColors: Int = 3
+  var enableHsvAnalysis: Bool = false
+  var minPixelThreshold: Float = 0.0
 }
 
 final class PixelAnalyzerEngine {
@@ -32,6 +34,46 @@ final class PixelAnalyzerEngine {
 
   private init() {
     self.ciContext = CIContext(options: [.useSoftwareRenderer: false])
+  }
+
+  // MARK: - RGB to HSV Conversion
+
+  private func rgbToHsv(r: Int, g: Int, b: Int) -> (h: Float, s: Float, v: Float) {
+    let rf = Float(r) / 255.0
+    let gf = Float(g) / 255.0
+    let bf = Float(b) / 255.0
+
+    let maxC = max(rf, gf, bf)
+    let minC = min(rf, gf, bf)
+    let delta = maxC - minC
+
+    // Value (0-100)
+    let v = maxC * 100.0
+
+    // Saturation (0-100)
+    let s: Float
+    if maxC == 0 {
+      s = 0
+    } else {
+      s = (delta / maxC) * 100.0
+    }
+
+    // Hue (0-360)
+    var h: Float = 0
+    if delta != 0 {
+      if maxC == rf {
+        h = 60 * fmod((gf - bf) / delta, 6)
+      } else if maxC == gf {
+        h = 60 * ((bf - rf) / delta + 2)
+      } else {
+        h = 60 * ((rf - gf) / delta + 4)
+      }
+      if h < 0 {
+        h += 360
+      }
+    }
+
+    return (h: h, s: s, v: v)
   }
 
   // Frame processor fast read (sync)
@@ -307,7 +349,13 @@ final class PixelAnalyzerEngine {
                      format: .RGBA32,
                      colorSpace: CGColorSpaceCreateDeviceRGB())
 
-    var result = reduceHistogram(bitmap, maxTopColors: options.maxTopColors, maxBrightestColors: options.maxBrightestColors)
+    var result = reduceHistogram(
+      bitmap,
+      maxTopColors: options.maxTopColors,
+      maxBrightestColors: options.maxBrightestColors,
+      enableHsvAnalysis: options.enableHsvAnalysis,
+      minPixelThreshold: options.minPixelThreshold
+    )
 
     // Add ROI applied flag
     if options.roi != nil {
@@ -323,28 +371,66 @@ final class PixelAnalyzerEngine {
     return result
   }
 
-  private func reduceHistogram(_ data: [UInt32], maxTopColors: Int = 3, maxBrightestColors: Int = 3) -> [String: Any] {
+  private func reduceHistogram(
+    _ data: [UInt32],
+    maxTopColors: Int = 3,
+    maxBrightestColors: Int = 3,
+    enableHsvAnalysis: Bool = false,
+    minPixelThreshold: Float = 0.0
+  ) -> [String: Any] {
     struct Stat { let r: Int; let g: Int; let b: Int; let count: Int; let brightness: Float }
     var stats: [Stat] = []
+    var totalPixelCount: Int = 0
+
+    // First pass: count total pixels
+    for i in stride(from: 0, to: data.count, by: 4) {
+      let count = Int(data[i + 3])
+      totalPixelCount += count
+    }
+
+    // Second pass: collect stats with optional threshold filtering
+    let thresholdCount = Int(Float(totalPixelCount) * minPixelThreshold)
     for i in stride(from: 0, to: data.count, by: 4) {
       let r = Int(data[i])
       let g = Int(data[i + 1])
       let b = Int(data[i + 2])
       let count = Int(data[i + 3])
       if count == 0 { continue }
+      // Filter by threshold if set
+      if minPixelThreshold > 0 && count < thresholdCount { continue }
       let brightness = 0.299 * Float(r) + 0.587 * Float(g) + 0.114 * Float(b)
       stats.append(Stat(r: r, g: g, b: b, count: count, brightness: brightness))
     }
 
     let clampedTop = max(1, min(10, maxTopColors))
     let clampedBright = max(1, min(10, maxBrightestColors))
-    let top = stats.sorted { $0.count > $1.count }.prefix(clampedTop).map { ["r": $0.r, "g": $0.g, "b": $0.b] }
-    let bright = stats.sorted { $0.brightness > $1.brightness }.prefix(clampedBright).map { ["r": $0.r, "g": $0.g, "b": $0.b] }
 
-    return [
+    // Build color info with optional HSV and pixelPercentage
+    func buildColorInfo(_ stat: Stat) -> [String: Any] {
+      var info: [String: Any] = ["r": stat.r, "g": stat.g, "b": stat.b]
+      if enableHsvAnalysis {
+        let hsv = rgbToHsv(r: stat.r, g: stat.g, b: stat.b)
+        info["hsv"] = ["h": hsv.h, "s": hsv.s, "v": hsv.v]
+      }
+      if minPixelThreshold > 0 && totalPixelCount > 0 {
+        info["pixelPercentage"] = Float(stat.count) / Float(totalPixelCount)
+      }
+      return info
+    }
+
+    let top = stats.sorted { $0.count > $1.count }.prefix(clampedTop).map { buildColorInfo($0) }
+    let bright = stats.sorted { $0.brightness > $1.brightness }.prefix(clampedBright).map { buildColorInfo($0) }
+
+    var result: [String: Any] = [
       "uniqueColorCount": stats.count,
       "topColors": Array(top),
       "brightestColors": Array(bright)
     ]
+
+    if minPixelThreshold > 0 || enableHsvAnalysis {
+      result["totalPixelsAnalyzed"] = totalPixelCount
+    }
+
+    return result
   }
 }

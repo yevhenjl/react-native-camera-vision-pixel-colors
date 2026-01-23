@@ -33,13 +33,17 @@ class PixelColorsFrameProcessor(proxy: VisionCameraProxy, options: Map<String, A
 
     val maxTopColors = (optionsMap["maxTopColors"] as? Number)?.toInt() ?: 3
     val maxBrightestColors = (optionsMap["maxBrightestColors"] as? Number)?.toInt() ?: 3
+    val enableHsvAnalysis = optionsMap["enableHsvAnalysis"] as? Boolean ?: false
+    val minPixelThreshold = (optionsMap["minPixelThreshold"] as? Number)?.toFloat() ?: 0.0f
 
     return AnalysisOptions(
       enableMotionDetection = enableMotionDetection,
       motionThreshold = motionThreshold,
       roi = roi,
       maxTopColors = maxTopColors,
-      maxBrightestColors = maxBrightestColors
+      maxBrightestColors = maxBrightestColors,
+      enableHsvAnalysis = enableHsvAnalysis,
+      minPixelThreshold = minPixelThreshold
     )
   }
 }

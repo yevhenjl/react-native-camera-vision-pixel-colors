@@ -31,12 +31,16 @@ function App(): React.JSX.Element {
   // Feature toggles
   const [enableMotion, setEnableMotion] = useState(false);
   const [enableROI, setEnableROI] = useState(false);
+  const [enableHsv, setEnableHsv] = useState(false);
+  const [enableThreshold, setEnableThreshold] = useState(false);
   const [maxTopColors, setMaxTopColors] = useState(3);
   const [maxBrightestColors, setMaxBrightestColors] = useState(3);
 
   // Shared values for worklet access
   const motionEnabled = useSharedValue(false);
   const roiEnabled = useSharedValue(false);
+  const hsvEnabled = useSharedValue(false);
+  const thresholdEnabled = useSharedValue(false);
   const topColorsCount = useSharedValue(3);
   const brightestColorsCount = useSharedValue(3);
 
@@ -47,6 +51,14 @@ function App(): React.JSX.Element {
   useEffect(() => {
     roiEnabled.value = enableROI;
   }, [enableROI, roiEnabled]);
+
+  useEffect(() => {
+    hsvEnabled.value = enableHsv;
+  }, [enableHsv, hsvEnabled]);
+
+  useEffect(() => {
+    thresholdEnabled.value = enableThreshold;
+  }, [enableThreshold, thresholdEnabled]);
 
   useEffect(() => {
     topColorsCount.value = maxTopColors;
@@ -101,10 +113,18 @@ function App(): React.JSX.Element {
         options.roi = { x: 0.35, y: 0.35, width: 0.3, height: 0.3 };
       }
 
+      if (hsvEnabled.value) {
+        options.enableHsvAnalysis = true;
+      }
+
+      if (thresholdEnabled.value) {
+        options.minPixelThreshold = 0.002; // 0.2%
+      }
+
       const colors = analyzePixelColors(frame, options);
       updateResultJS(colors);
     },
-    [updateResultJS, motionEnabled, roiEnabled, topColorsCount, brightestColorsCount],
+    [updateResultJS, motionEnabled, roiEnabled, hsvEnabled, thresholdEnabled, topColorsCount, brightestColorsCount],
   );
 
   const openSettings = useCallback(() => {
@@ -162,6 +182,14 @@ function App(): React.JSX.Element {
         <View style={styles.toggleRow}>
           <Text style={styles.toggleLabel}>ROI (Center 30%)</Text>
           <Switch value={enableROI} onValueChange={setEnableROI} />
+        </View>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleLabel}>HSV Analysis</Text>
+          <Switch value={enableHsv} onValueChange={setEnableHsv} />
+        </View>
+        <View style={styles.toggleRow}>
+          <Text style={styles.toggleLabel}>Pixel Threshold (0.2%)</Text>
+          <Switch value={enableThreshold} onValueChange={setEnableThreshold} />
         </View>
         <View style={styles.sliderRow}>
           <Text style={styles.toggleLabel}>Top Colors: {maxTopColors}</Text>
@@ -226,32 +254,60 @@ function App(): React.JSX.Element {
               </View>
             )}
 
+            {result.totalPixelsAnalyzed !== undefined && (
+              <Text style={styles.featureTag}>
+                Total Pixels: {result.totalPixelsAnalyzed.toLocaleString()}
+              </Text>
+            )}
+
             <Text style={styles.label}>Top Colors:</Text>
             <View style={styles.colorRow}>
               {result.topColors.map((color, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.colorBox,
-                    {
-                      backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
-                    },
-                  ]}
-                />
+                <View key={i} style={styles.colorItem}>
+                  <View
+                    style={[
+                      styles.colorBox,
+                      {
+                        backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
+                      },
+                    ]}
+                  />
+                  {color.hsv && (
+                    <Text style={styles.hsvText}>
+                      H:{Math.round(color.hsv.h)}
+                    </Text>
+                  )}
+                  {color.pixelPercentage !== undefined && (
+                    <Text style={styles.percentText}>
+                      {(color.pixelPercentage * 100).toFixed(1)}%
+                    </Text>
+                  )}
+                </View>
               ))}
             </View>
             <Text style={styles.label}>Brightest Colors:</Text>
             <View style={styles.colorRow}>
               {result.brightestColors.map((color, i) => (
-                <View
-                  key={i}
-                  style={[
-                    styles.colorBox,
-                    {
-                      backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
-                    },
-                  ]}
-                />
+                <View key={i} style={styles.colorItem}>
+                  <View
+                    style={[
+                      styles.colorBox,
+                      {
+                        backgroundColor: `rgb(${color.r}, ${color.g}, ${color.b})`,
+                      },
+                    ]}
+                  />
+                  {color.hsv && (
+                    <Text style={styles.hsvText}>
+                      H:{Math.round(color.hsv.h)}
+                    </Text>
+                  )}
+                  {color.pixelPercentage !== undefined && (
+                    <Text style={styles.percentText}>
+                      {(color.pixelPercentage * 100).toFixed(1)}%
+                    </Text>
+                  )}
+                </View>
               ))}
             </View>
           </>
@@ -353,6 +409,10 @@ const styles = StyleSheet.create({
   colorRow: {
     flexDirection: 'row',
     gap: 8,
+    flexWrap: 'wrap',
+  },
+  colorItem: {
+    alignItems: 'center',
   },
   colorBox: {
     width: 50,
@@ -360,6 +420,15 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 2,
     borderColor: '#fff',
+  },
+  hsvText: {
+    fontSize: 10,
+    color: '#aaa',
+    marginTop: 2,
+  },
+  percentText: {
+    fontSize: 10,
+    color: '#00FF00',
   },
   button: {
     backgroundColor: '#007AFF',

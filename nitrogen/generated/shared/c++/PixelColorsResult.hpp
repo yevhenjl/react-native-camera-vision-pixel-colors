@@ -28,12 +28,12 @@
 #error NitroModules cannot be found! Are you sure you installed NitroModules properly?
 #endif
 
-// Forward declaration of `RGBColor` to properly resolve imports.
-namespace margelo::nitro::cameravisionpixelcolors { struct RGBColor; }
+// Forward declaration of `ColorInfo` to properly resolve imports.
+namespace margelo::nitro::cameravisionpixelcolors { struct ColorInfo; }
 // Forward declaration of `MotionResult` to properly resolve imports.
 namespace margelo::nitro::cameravisionpixelcolors { struct MotionResult; }
 
-#include "RGBColor.hpp"
+#include "ColorInfo.hpp"
 #include <vector>
 #include "MotionResult.hpp"
 #include <optional>
@@ -46,14 +46,15 @@ namespace margelo::nitro::cameravisionpixelcolors {
   struct PixelColorsResult final {
   public:
     double uniqueColorCount     SWIFT_PRIVATE;
-    std::vector<RGBColor> topColors     SWIFT_PRIVATE;
-    std::vector<RGBColor> brightestColors     SWIFT_PRIVATE;
+    std::vector<ColorInfo> topColors     SWIFT_PRIVATE;
+    std::vector<ColorInfo> brightestColors     SWIFT_PRIVATE;
     std::optional<MotionResult> motion     SWIFT_PRIVATE;
     std::optional<bool> roiApplied     SWIFT_PRIVATE;
+    std::optional<double> totalPixelsAnalyzed     SWIFT_PRIVATE;
 
   public:
     PixelColorsResult() = default;
-    explicit PixelColorsResult(double uniqueColorCount, std::vector<RGBColor> topColors, std::vector<RGBColor> brightestColors, std::optional<MotionResult> motion, std::optional<bool> roiApplied): uniqueColorCount(uniqueColorCount), topColors(topColors), brightestColors(brightestColors), motion(motion), roiApplied(roiApplied) {}
+    explicit PixelColorsResult(double uniqueColorCount, std::vector<ColorInfo> topColors, std::vector<ColorInfo> brightestColors, std::optional<MotionResult> motion, std::optional<bool> roiApplied, std::optional<double> totalPixelsAnalyzed): uniqueColorCount(uniqueColorCount), topColors(topColors), brightestColors(brightestColors), motion(motion), roiApplied(roiApplied), totalPixelsAnalyzed(totalPixelsAnalyzed) {}
 
   public:
     friend bool operator==(const PixelColorsResult& lhs, const PixelColorsResult& rhs) = default;
@@ -70,19 +71,21 @@ namespace margelo::nitro {
       jsi::Object obj = arg.asObject(runtime);
       return margelo::nitro::cameravisionpixelcolors::PixelColorsResult(
         JSIConverter<double>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "uniqueColorCount"))),
-        JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::RGBColor>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "topColors"))),
-        JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::RGBColor>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "brightestColors"))),
+        JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::ColorInfo>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "topColors"))),
+        JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::ColorInfo>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "brightestColors"))),
         JSIConverter<std::optional<margelo::nitro::cameravisionpixelcolors::MotionResult>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "motion"))),
-        JSIConverter<std::optional<bool>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "roiApplied")))
+        JSIConverter<std::optional<bool>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "roiApplied"))),
+        JSIConverter<std::optional<double>>::fromJSI(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "totalPixelsAnalyzed")))
       );
     }
     static inline jsi::Value toJSI(jsi::Runtime& runtime, const margelo::nitro::cameravisionpixelcolors::PixelColorsResult& arg) {
       jsi::Object obj(runtime);
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "uniqueColorCount"), JSIConverter<double>::toJSI(runtime, arg.uniqueColorCount));
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "topColors"), JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::RGBColor>>::toJSI(runtime, arg.topColors));
-      obj.setProperty(runtime, PropNameIDCache::get(runtime, "brightestColors"), JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::RGBColor>>::toJSI(runtime, arg.brightestColors));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "topColors"), JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::ColorInfo>>::toJSI(runtime, arg.topColors));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "brightestColors"), JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::ColorInfo>>::toJSI(runtime, arg.brightestColors));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "motion"), JSIConverter<std::optional<margelo::nitro::cameravisionpixelcolors::MotionResult>>::toJSI(runtime, arg.motion));
       obj.setProperty(runtime, PropNameIDCache::get(runtime, "roiApplied"), JSIConverter<std::optional<bool>>::toJSI(runtime, arg.roiApplied));
+      obj.setProperty(runtime, PropNameIDCache::get(runtime, "totalPixelsAnalyzed"), JSIConverter<std::optional<double>>::toJSI(runtime, arg.totalPixelsAnalyzed));
       return obj;
     }
     static inline bool canConvert(jsi::Runtime& runtime, const jsi::Value& value) {
@@ -94,10 +97,11 @@ namespace margelo::nitro {
         return false;
       }
       if (!JSIConverter<double>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "uniqueColorCount")))) return false;
-      if (!JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::RGBColor>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "topColors")))) return false;
-      if (!JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::RGBColor>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "brightestColors")))) return false;
+      if (!JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::ColorInfo>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "topColors")))) return false;
+      if (!JSIConverter<std::vector<margelo::nitro::cameravisionpixelcolors::ColorInfo>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "brightestColors")))) return false;
       if (!JSIConverter<std::optional<margelo::nitro::cameravisionpixelcolors::MotionResult>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "motion")))) return false;
       if (!JSIConverter<std::optional<bool>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "roiApplied")))) return false;
+      if (!JSIConverter<std::optional<double>>::canConvert(runtime, obj.getProperty(runtime, PropNameIDCache::get(runtime, "totalPixelsAnalyzed")))) return false;
       return true;
     }
   };

@@ -53,6 +53,14 @@ public final class PixelColorsFrameProcessor: FrameProcessorPlugin {
       options.maxBrightestColors = maxBrightestColors
     }
 
+    if let enableHsvAnalysis = optionsDict["enableHsvAnalysis"] as? Bool {
+      options.enableHsvAnalysis = enableHsvAnalysis
+    }
+
+    if let minPixelThreshold = optionsDict["minPixelThreshold"] as? Double {
+      options.minPixelThreshold = Float(minPixelThreshold)
+    }
+
     return options
   }
 }
